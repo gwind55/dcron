@@ -188,14 +188,18 @@ func (d *Dcron) startNodePool() error {
 }
 
 // Stop job
-func (d *Dcron) Stop() {
+func (d *Dcron) Stop() error {
 	tick := time.NewTicker(time.Millisecond)
-	d.nodePool.Stop(context.Background())
+	err := d.nodePool.Stop(context.Background())
+	if err != nil {
+		return err
+	}
 	for range tick.C {
 		if atomic.CompareAndSwapInt32(&d.running, dcronRunning, dcronStopped) {
 			d.cr.Stop()
 			d.logger.Infof("dcron stopped")
-			return
+			return nil
 		}
 	}
+	return nil
 }
